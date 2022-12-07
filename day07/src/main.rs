@@ -11,20 +11,20 @@ fn main() {
 
         match &words[..] {
             ["$", "cd", ".."] => {
-                let size = *dirs.get_mut(&cwd).unwrap();
                 cwd.pop();
-                *dirs.get_mut(&cwd).unwrap() += size;
             }
             ["$", "cd", dir] => {
                 cwd.push(*dir);
                 dirs.insert(cwd.clone(), 0);
             }
-            ["dir" | "ls" | "$", ..] => (), // noop
+            ["$" | "dir", ..] => (), // noop
             [size, _] => {
-                let dir = dirs.get_mut(&cwd).unwrap();
-                *dir += size.parse::<usize>().unwrap()
+                let size: usize = size.parse().unwrap();
+                for i in 1..=cwd.len() {
+                    *dirs.get_mut(&cwd[0..i]).unwrap() += size;
+                }
             }
-            _ => panic!()
+            _ => panic!(),
         }
     }
 
