@@ -11,9 +11,9 @@ fn main() {
 
         match &words[..] {
             ["$", "cd", ".."] => {
-                let dir = *dirs.get_mut(&cwd).unwrap();
+                let size = *dirs.get_mut(&cwd).unwrap();
                 cwd.pop();
-                *dirs.get_mut(&cwd).unwrap() += dir;
+                *dirs.get_mut(&cwd).unwrap() += size;
             }
             ["$", "cd", dir] => {
                 cwd.push(*dir);
@@ -30,11 +30,8 @@ fn main() {
 
     let part_1: usize = dirs.values().filter(|v| **v <= 100000).sum();
 
-    let mut sizes: Vec<usize> = dirs.values().cloned().collect();
-    sizes.sort_unstable();
-
-    let target = 30000000 - (70000000 - sizes.last().unwrap());
-    let part_2 = sizes.iter().find(|v| **v >= target).unwrap();
+    let target = 30000000 - (70000000 - dirs.values().max().unwrap());
+    let part_2 = dirs.values().filter(|v| **v >= target).min().unwrap();
 
     println!("Part 1: {part_1}\nPart 2: {part_2}");
 }
