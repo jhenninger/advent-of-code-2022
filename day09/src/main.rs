@@ -37,17 +37,17 @@ fn solve<const N: usize>(motions: &[((i8, i8), u32)]) -> usize {
             rope[0].0 += dir.0 as i32;
             rope[0].1 += dir.1 as i32;
 
-            for i in 0..(N - 1) {
-                let dx = rope[i].0 - rope[i + 1].0;
-                let dy = rope[i].1 - rope[i + 1].1;
+            for i in 1..N {
+                let head = rope[i - 1];
+                let tail = &mut rope[i];
+                let dist = (head.0 - tail.0, head.1 - tail.1);
 
-                if dx.abs() < 2 && dy.abs() < 2 {
-                    break
-                } 
+                if dist.0.abs() < 2 && dist.1.abs() < 2 {
+                    break;
+                }
 
-                let tail = rope.get_mut(i + 1).unwrap();
-                tail.0 += dx.signum();
-                tail.1 += dy.signum();
+                tail.0 += dist.0.signum();
+                tail.1 += dist.1.signum();
             }
 
             visited.insert(*rope.last().unwrap());
