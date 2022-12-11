@@ -1,7 +1,8 @@
+use regex::Regex;
 use std::cmp::Reverse;
 use std::ops::{Add, Mul};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct Monkey {
     items: Vec<u64>,
     modulo: u64,
@@ -39,7 +40,7 @@ impl Monkey {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 enum Operand {
     Constant(u64),
     Old,
@@ -47,57 +48,39 @@ enum Operand {
 
 fn main() {
     let input = include_str!("../input");
-    let monkeys: Vec<_> = input
-        .split("\n\n")
-        .map(|monkey| {
-            let mut lines = monkey.lines();
+    let regex = Regex::new(
+        r"
+Monkey .+:
+  Starting items: (.+)
+  Operation: new = old (.) (.+)
+  Test: divisible by (\d+)
+    If true: throw to monkey (\d+)
+    If false: throw to monkey (\d+)"
+            .trim(),
+    )
+    .unwrap();
 
-            let items = &lines.nth(1).unwrap()[18..];
-            let items = items.split(", ").map(|i| i.parse().unwrap()).collect();
-
-            let mut operation = lines.next().unwrap().split_ascii_whitespace();
-            let operator = match operation.nth(4).unwrap() {
+    let monkeys: Vec<_> = regex
+        .captures_iter(input)
+        .map(|c| {
+            let operator = match &c[2] {
                 "+" => u64::add,
                 "*" => u64::mul,
                 _ => panic!(),
             };
-            let operand = match operation.next().unwrap() {
+
+            let operand = match &c[3] {
                 "old" => Operand::Old,
                 n => Operand::Constant(n.parse().unwrap()),
             };
 
-            let modulo = lines
-                .next()
-                .unwrap()
-                .split_ascii_whitespace()
-                .nth(3)
-                .unwrap()
-                .parse()
-                .unwrap();
-            let r#true = lines
-                .next()
-                .unwrap()
-                .split_ascii_whitespace()
-                .nth(5)
-                .unwrap()
-                .parse()
-                .unwrap();
-            let r#false = lines
-                .next()
-                .unwrap()
-                .split_ascii_whitespace()
-                .nth(5)
-                .unwrap()
-                .parse()
-                .unwrap();
-
             Monkey {
-                items,
+                items: c[1].split(", ").map(|i| i.parse().unwrap()).collect(),
                 operator,
                 operand,
-                modulo,
-                r#true,
-                r#false,
+                modulo: c[4].parse().unwrap(),
+                r#true: c[5].parse().unwrap(),
+                r#false: c[6].parse().unwrap(),
                 inspections: 0,
             }
         })
