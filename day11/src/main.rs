@@ -13,32 +13,29 @@ struct Monkey {
 }
 
 impl Monkey {
-    fn inspect(&mut self, modulo: Option<u64>) -> Vec<(usize, u64)> {
-        self.items
-            .drain(0..)
-            .map(|mut i| {
-                let rhs = match self.operand {
-                    Operand::Constant(c) => c,
-                    Operand::Old => i,
-                };
+    fn throw(&mut self, modulo: Option<u64>) -> Option<(usize, u64)> {
+        let mut i = self.items.pop()?;
 
-                i = (self.operator)(i, rhs);
+        let rhs = match self.operand {
+            Operand::Constant(c) => c,
+            Operand::Old => i,
+        };
 
-                match modulo {
-                    Some(modulo) => i %= modulo,
-                    None => i /= 3,
-                }
+        i = (self.operator)(i, rhs);
 
-                let target = match i % self.modulo {
-                    0 => self.r#true,
-                    _ => self.r#false,
-                };
+        match modulo {
+            Some(modulo) => i %= modulo,
+            None => i /= 3,
+        }
 
-                self.inspections += 1;
+        let target = match i % self.modulo {
+            0 => self.r#true,
+            _ => self.r#false,
+        };
 
-                (target, i)
-            })
-            .collect()
+        self.inspections += 1;
+
+        Some((target, i))
     }
 }
 
@@ -123,7 +120,7 @@ fn monkey_business(mut monkeys: Vec<Monkey>, part_2: bool) -> u64 {
 
     for _ in 0..rounds {
         for m in 0..monkeys.len() {
-            for (target, item) in monkeys[m].inspect(modulo) {
+            while let Some((target, item)) = monkeys[m].throw(modulo) {
                 monkeys[target].items.push(item);
             }
         }
